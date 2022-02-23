@@ -2,46 +2,54 @@ package com.baggio.projeto.rbfood.api.exceptionHandler;
 
 import java.time.LocalDateTime;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import com.baggio.projeto.rbfood.domain.exception.EntidadeEmUsoException;
 import com.baggio.projeto.rbfood.domain.exception.EntidadeNaoEncontradaException;
 import com.baggio.projeto.rbfood.domain.exception.NegocioException;
 
 @ControllerAdvice
-public class APIExceptionHandler extends ResponseEntityExceptionHandler{
+public class APIExceptionHandler extends ResponseEntityExceptionHandler {
 
 	@ExceptionHandler(EntidadeNaoEncontradaException.class)
-	public ResponseEntity<?> tratarEntidadeNaoEncontradaException(EntidadeNaoEncontradaException e) {
-		APIErro apiErro = APIErro.builder()
-				.dataHora(LocalDateTime.now())
-				.mensagem(e.getMessage()).build();
-		
-		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(apiErro);
-	}
-	
-	@ExceptionHandler(NegocioException.class)
-	public ResponseEntity<?> tratarNegocioException(NegocioException e) {
-		APIErro apiErro = APIErro.builder()
-				.dataHora(LocalDateTime.now())
-				.mensagem(e.getMessage()).build();
-		
-		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiErro);
+	public ResponseEntity<?> tratarEntidadeNaoEncontradaException(EntidadeNaoEncontradaException e,
+			WebRequest request) {
+		return handleExceptionInternal(e, e.getMessage(), new HttpHeaders(), HttpStatus.NOT_FOUND, request);
 	}
 
-	@ExceptionHandler(HttpMediaTypeNotSupportedException.class)
-	public ResponseEntity<?> tratarHttpMediaTypeNotSupportedException() {
-		APIErro apiErro = APIErro.builder()
-				.dataHora(LocalDateTime.now())
-				.mensagem("O tipo de mídia não é aceito").build();
-		
-		return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(apiErro);	
+	@ExceptionHandler(EntidadeEmUsoException.class)
+	public ResponseEntity<?> tratarEntidadeEmUsoException(EntidadeEmUsoException e, WebRequest request) {
+		return handleExceptionInternal(e, e.getMessage(), new HttpHeaders(), HttpStatus.CONFLICT, request);
 	}
-	
-	
-	
+
+	@ExceptionHandler(NegocioException.class)
+	public ResponseEntity<?> tratarNegocioException(NegocioException e, WebRequest request) {
+		return handleExceptionInternal(e, e.getMessage(), new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
+	}
+
+	@Override
+	protected ResponseEntity<Object> handleExceptionInternal(Exception ex, Object body, HttpHeaders headers,
+			HttpStatus status, WebRequest request) {
+
+		if (body == null) {
+			body = APIErro.builder()
+					.dataHora(LocalDateTime.now())
+					.mensagem(status.getReasonPhrase())
+					.build();
+		} else if( body instanceof String) {
+			body = APIErro.builder()
+					.dataHora(LocalDateTime.now())
+					.mensagem((String) body)
+					.build();
+		}
+		
+		return super.handleExceptionInternal(ex, body, headers, status, request);
+	}
+
 }
