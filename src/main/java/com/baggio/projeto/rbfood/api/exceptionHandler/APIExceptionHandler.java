@@ -7,13 +7,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-import com.baggio.projeto.rbfood.domain.exception.EntidadeEmUsoException;
 import com.baggio.projeto.rbfood.domain.exception.EntidadeNaoEncontradaException;
 import com.baggio.projeto.rbfood.domain.exception.NegocioException;
 
 @ControllerAdvice
-public class APIExceptionHandler {
+public class APIExceptionHandler extends ResponseEntityExceptionHandler{
 
 	@ExceptionHandler(EntidadeNaoEncontradaException.class)
 	public ResponseEntity<?> tratarEntidadeNaoEncontradaException(EntidadeNaoEncontradaException e) {
@@ -42,14 +42,6 @@ public class APIExceptionHandler {
 		return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(apiErro);	
 	}
 	
-	@ExceptionHandler(EntidadeEmUsoException.class)
-	public ResponseEntity<?> tratarEntidadeEmUsoException(EntidadeEmUsoException e) {
-		APIErro apiErro = APIErro.builder()
-				.dataHora(LocalDateTime.now())
-				.mensagem(e.getMessage()).build();
-		
-		return ResponseEntity.status(HttpStatus.CONFLICT).body(apiErro);	
-	}	
 	
 	
 }
