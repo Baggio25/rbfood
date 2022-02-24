@@ -19,24 +19,31 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
 	public ResponseEntity<?> handleEntidadeNaoEncontradaException(EntidadeNaoEncontradaException e,
 			WebRequest request) {
 		HttpStatus status = HttpStatus.NOT_FOUND;
-		String detail = e.getMessage();
-		APIErro apiErro = APIErro.builder()
-				.status(status.value())
-				.type("http://rbfood.com.br/entidade-nao-encontrada")
-				.title("Entidade não encontrada")
-				.detail(detail)
-				.build();
+		ProblemType problemType = ProblemType.ENTIDADE_NAO_ENCONTRADA;
+		String details = e.getMessage();
+		
+		APIErro apiErro = createAPIErroBuilder(status, problemType, details).build();
 		return handleExceptionInternal(e, apiErro, new HttpHeaders(), status, request);
 	}
 
 	@ExceptionHandler(EntidadeEmUsoException.class)
 	public ResponseEntity<?> handleEntidadeEmUsoException(EntidadeEmUsoException e, WebRequest request) {
-		return handleExceptionInternal(e, e.getMessage(), new HttpHeaders(), HttpStatus.CONFLICT, request);
+		HttpStatus status = HttpStatus.CONFLICT;
+		ProblemType problemType = ProblemType.ENTIDADE_EM_USO;
+		String details = e.getMessage();
+		
+		APIErro apiErro = createAPIErroBuilder(status, problemType, details).build();
+		return handleExceptionInternal(e, apiErro, new HttpHeaders(), status, request);
 	}
 
 	@ExceptionHandler(NegocioException.class)
 	public ResponseEntity<?> handleNegocioException(NegocioException e, WebRequest request) {
-		return handleExceptionInternal(e, e.getMessage(), new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
+		HttpStatus status = HttpStatus.BAD_REQUEST;
+		ProblemType problemType = ProblemType.ERRO_NEGOCIO;
+		String details = e.getMessage();
+		
+		APIErro apiErro = createAPIErroBuilder(status, problemType, details).build();
+		return handleExceptionInternal(e, apiErro, new HttpHeaders(), status, request);
 	}
 
 	@Override
@@ -44,21 +51,27 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
 			HttpStatus status, WebRequest request) {
 
 		if (body == null) {
-			body = retornaAPIErro(status, status.getReasonPhrase());
-		} else if( body instanceof String) {
-			body = retornaAPIErro(status, (String) body);
+			body = APIErro.builder()
+				.title(status.getReasonPhrase())
+				.status(status.value())
+				.build();
+		} else if (body instanceof String) {
+			body = APIErro.builder()
+				.title((String) body)
+				.status(status.value())
+				.build();
 		}
 		
 		return super.handleExceptionInternal(ex, body, headers, status, request);
 	}
 
-	private Object retornaAPIErro(HttpStatus status, String title) {
-		Object body;
-		body = APIErro.builder()
-				.title(title)
+	private APIErro.APIErroBuilder createAPIErroBuilder(HttpStatus status, ProblemType problemType, 
+			String details) {
+		return APIErro.builder()
 				.status(status.value())
-				.build();
-		return body;
+				.type(problemType.getPath())
+				.title(problemType.getTitulo())
+				.detail(details);
 	}
 
 }
