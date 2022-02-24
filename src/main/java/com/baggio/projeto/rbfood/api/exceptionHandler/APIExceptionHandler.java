@@ -1,7 +1,5 @@
 package com.baggio.projeto.rbfood.api.exceptionHandler;
 
-import java.time.LocalDateTime;
-
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,18 +16,26 @@ import com.baggio.projeto.rbfood.domain.exception.NegocioException;
 public class APIExceptionHandler extends ResponseEntityExceptionHandler {
 
 	@ExceptionHandler(EntidadeNaoEncontradaException.class)
-	public ResponseEntity<?> tratarEntidadeNaoEncontradaException(EntidadeNaoEncontradaException e,
+	public ResponseEntity<?> handleEntidadeNaoEncontradaException(EntidadeNaoEncontradaException e,
 			WebRequest request) {
-		return handleExceptionInternal(e, e.getMessage(), new HttpHeaders(), HttpStatus.NOT_FOUND, request);
+		HttpStatus status = HttpStatus.NOT_FOUND;
+		String detail = e.getMessage();
+		APIErro apiErro = APIErro.builder()
+				.status(status.value())
+				.type("http://rbfood.com.br/entidade-nao-encontrada")
+				.title("Entidade não encontrada")
+				.detail(detail)
+				.build();
+		return handleExceptionInternal(e, apiErro, new HttpHeaders(), status, request);
 	}
 
 	@ExceptionHandler(EntidadeEmUsoException.class)
-	public ResponseEntity<?> tratarEntidadeEmUsoException(EntidadeEmUsoException e, WebRequest request) {
+	public ResponseEntity<?> handleEntidadeEmUsoException(EntidadeEmUsoException e, WebRequest request) {
 		return handleExceptionInternal(e, e.getMessage(), new HttpHeaders(), HttpStatus.CONFLICT, request);
 	}
 
 	@ExceptionHandler(NegocioException.class)
-	public ResponseEntity<?> tratarNegocioException(NegocioException e, WebRequest request) {
+	public ResponseEntity<?> handleNegocioException(NegocioException e, WebRequest request) {
 		return handleExceptionInternal(e, e.getMessage(), new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
 	}
 
@@ -38,18 +44,21 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
 			HttpStatus status, WebRequest request) {
 
 		if (body == null) {
-			body = APIErro.builder()
-					.dataHora(LocalDateTime.now())
-					.mensagem(status.getReasonPhrase())
-					.build();
+			body = retornaAPIErro(status, status.getReasonPhrase());
 		} else if( body instanceof String) {
-			body = APIErro.builder()
-					.dataHora(LocalDateTime.now())
-					.mensagem((String) body)
-					.build();
+			body = retornaAPIErro(status, (String) body);
 		}
 		
 		return super.handleExceptionInternal(ex, body, headers, status, request);
+	}
+
+	private Object retornaAPIErro(HttpStatus status, String title) {
+		Object body;
+		body = APIErro.builder()
+				.title(title)
+				.status(status.value())
+				.build();
+		return body;
 	}
 
 }
