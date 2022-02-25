@@ -24,7 +24,7 @@ import lombok.EqualsAndHashCode;
 @Table(name = "tb_cozinha")
 public class Cozinha {
 
-	@NotNull(groups = Groups.CadastroRestaurante.class, message = "Campo obrigatório") //valida a partir do restaurante
+	@NotNull(groups = Groups.CozinhaId.class, message = "Campo obrigatório") //valida a partir do restaurante
 	@EqualsAndHashCode.Include
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
