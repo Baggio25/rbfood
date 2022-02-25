@@ -5,6 +5,9 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.TypeMismatchException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,10 +30,14 @@ import com.fasterxml.jackson.databind.exc.PropertyBindingException;
 
 @ControllerAdvice
 public class APIExceptionHandler extends ResponseEntityExceptionHandler {
-
+	
 	public static final String MSG_ERRO_GENERICA_USUARIO_FINAL = "Ocorreu um erro interno inesperado no sistema. Tente novamente e se "
 			+ "o problema persistir, entre em contato com o administrador do sistema.";
 
+	@Autowired
+	private MessageSource messageSource;
+		
+	
 	/**
 	 * Trata erros internos do sistema
 	 * 
@@ -103,10 +110,14 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
 		String detail = "Um ou mais campos estão inválidos. Faça o preenchimento correto e tente novamente.";
 		BindingResult bindingResult = ex.getBindingResult();
 		List<APIErro.Field> fields = bindingResult.getFieldErrors().stream()
-				.map(fieldError -> APIErro.Field.builder()
+				.map(fieldError -> { 
+					String msg = messageSource.getMessage(fieldError, LocaleContextHolder.getLocale());
+					
+					return APIErro.Field.builder()
 						.name(fieldError.getField())
-						.userMessage(fieldError.getDefaultMessage())
-						.build())
+						.userMessage(msg)
+						.build(); 
+				})
 				.collect(Collectors.toList());
 		
 		APIErro apiErro = createAPIErroBuilder(status, problemType, detail)

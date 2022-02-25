@@ -44,17 +44,18 @@ public class Restaurante {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@NotBlank(message = "Campo obrigatório")
+	@NotBlank
 	@Column(nullable = false)
 	private String nome;
 
+	@NotNull
 	@PositiveOrZero(message = "O valor deve ser maior ou igual a 0")
 	@Column(name = "taxa_frete", nullable = false)
 	private BigDecimal taxaFrete;
 	
 	@Valid //valida as propriedade id de cozinha a partir de restaurante
 	@ConvertGroup(from = Default.class, to = Groups.CozinhaId.class)
-	@NotNull(message = "Campo obrigatório")
+	@NotNull
 	@ManyToOne
 	@JoinColumn(name = "cozinha_id", nullable = false)
 	private Cozinha cozinha;
