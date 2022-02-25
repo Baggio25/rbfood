@@ -64,12 +64,11 @@ public class Restaurante {
 	@Embedded
 	private Endereco endereco;
 	
-	//@JsonIgnore
 	@CreationTimestamp
 	@Column(name = "data_cadastro", nullable = false, columnDefinition = "datetime") 
-	private OffsetDateTime dataCadastro; //Exibe no formato offset "2022-02-25T14:16:30-03:00"
+	private OffsetDateTime dataCadastro;
 	
-	//@JsonIgnore
+	@JsonIgnore
 	@UpdateTimestamp
 	@Column(name = "data_atualizacao", nullable = false, columnDefinition = "datetime")
 	private OffsetDateTime dataAtualizacao;

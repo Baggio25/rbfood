@@ -1,6 +1,6 @@
 package com.baggio.projeto.rbfood.domain.model;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,10 +41,9 @@ public class Usuario {
 	@Column(nullable = false)
 	private String senha;
 	
-	@JsonIgnore
 	@CreationTimestamp
 	@Column(name = "data_cadastro", nullable = false, columnDefinition = "datetime") 
-	private LocalDateTime dataCadastro;
+	private OffsetDateTime dataCadastro;
 	
 	@JsonIgnore
 	@ManyToMany
