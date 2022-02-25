@@ -17,12 +17,15 @@ import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.PositiveOrZero;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.baggio.projeto.rbfood.Groups;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.Data;
@@ -39,18 +42,18 @@ public class Restaurante {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@NotBlank(message = "Campo obrigatório")
+	@NotBlank(groups = Groups.CadastroRestaurante.class, message = "Campo obrigatório")
 	@Column(nullable = false)
 	private String nome;
 
-	@NotNull(message = "Campo obrigatório")
+	@PositiveOrZero(groups = Groups.CadastroRestaurante.class, message = "O valor deve ser maior ou igual a 0")
 	@Column(name = "taxa_frete", nullable = false)
 	private BigDecimal taxaFrete;
 	
-	@NotNull(message = "Campo obrigatório")
+	@Valid //valida as propriedades de cozinha a partir de restaurante
+	@NotNull(groups = Groups.CadastroRestaurante.class, message = "Campo obrigatório")
 	@ManyToOne
-	@JoinColumn(name = "cozinha_id", 
-				nullable = false)
+	@JoinColumn(name = "cozinha_id", nullable = false)
 	private Cozinha cozinha;
 
 	@JsonIgnore

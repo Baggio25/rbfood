@@ -9,7 +9,10 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
+import com.baggio.projeto.rbfood.Groups;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.Data;
@@ -21,11 +24,13 @@ import lombok.EqualsAndHashCode;
 @Table(name = "tb_cozinha")
 public class Cozinha {
 
+	@NotNull(groups = Groups.CadastroRestaurante.class, message = "Campo obrigatório") //valida a partir do restaurante
 	@EqualsAndHashCode.Include
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
+	@NotBlank(message = "Campo obrigatório")
 	@Column(nullable = false)
 	private String nome;
 
