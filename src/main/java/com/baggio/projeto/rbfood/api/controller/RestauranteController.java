@@ -3,6 +3,7 @@ package com.baggio.projeto.rbfood.api.controller;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.baggio.projeto.rbfood.api.model.CozinhaDTO;
 import com.baggio.projeto.rbfood.api.model.RestauranteDTO;
 import com.baggio.projeto.rbfood.domain.exception.CozinhaNaoEncontradaException;
 import com.baggio.projeto.rbfood.domain.exception.NegocioException;
@@ -41,25 +43,24 @@ public class RestauranteController {
 	private CadastroRestauranteService cadastroRestauranteService;
 
 	@GetMapping
-	public List<Restaurante> listar() {
-		return cadastroRestauranteService.listar();
+	public List<RestauranteDTO> listar() {
+		return toCollectionDTO(cadastroRestauranteService.listar());
 	}
 
 	@GetMapping(value = "/{id}")
 	public RestauranteDTO buscar(@PathVariable Long id) {
 		Restaurante restaurante = cadastroRestauranteService.buscar(id);
-		RestauranteDTO restauranteDTO = null;
-		
-		return restauranteDTO;
+		return toDTO(restaurante);
 	}
 
 	@PutMapping(value = "/{id}")
-	public Restaurante atualizar(@PathVariable Long id, @Valid @RequestBody Restaurante restaurante) {
-		Restaurante restauranteSalvo = cadastroRestauranteService.buscar(id);
-		BeanUtils.copyProperties(restaurante, restauranteSalvo, "id", "formasPagamento", "endereco", "dataCadastro");
-
+	public RestauranteDTO atualizar(@PathVariable Long id, @Valid @RequestBody Restaurante restaurante) {
+		
 		try {
-			return restauranteSalvo = cadastroRestauranteService.salvar(restauranteSalvo);
+			Restaurante restauranteSalvo = cadastroRestauranteService.buscar(id);
+			BeanUtils.copyProperties(restaurante, restauranteSalvo, "id", "formasPagamento", "endereco", "dataCadastro");
+	
+			return toDTO(cadastroRestauranteService.salvar(restauranteSalvo));
 		} catch (CozinhaNaoEncontradaException e) {
 			throw new NegocioException(e.getMessage());
 		}
@@ -67,7 +68,7 @@ public class RestauranteController {
 	}
 
 	@PatchMapping(value = "/{id}")
-	public Restaurante atualizarParcial(@PathVariable Long id, @RequestBody Map<String, Object> campos,
+	public RestauranteDTO atualizarParcial(@PathVariable Long id, @RequestBody Map<String, Object> campos,
 			HttpServletRequest request) {
 		Restaurante restauranteSalvo = cadastroRestauranteService.buscar(id);
 		merge(campos, restauranteSalvo, request);
@@ -76,9 +77,9 @@ public class RestauranteController {
 
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
-	public Restaurante adicionar(@RequestBody @Valid Restaurante restaurante) {
+	public RestauranteDTO adicionar(@RequestBody @Valid Restaurante restaurante) {
 		try {
-			return cadastroRestauranteService.salvar(restaurante);
+			return toDTO(cadastroRestauranteService.salvar(restaurante));
 		} catch (CozinhaNaoEncontradaException e) {
 			throw new NegocioException(e.getMessage());
 		}
@@ -111,6 +112,25 @@ public class RestauranteController {
 			Throwable rootCause = ExceptionUtils.getRootCause(e);
 			throw new HttpMessageNotReadableException(e.getMessage(), rootCause, serverRequest);
 		}
+	}
+
+	private RestauranteDTO toDTO(Restaurante restaurante) {
+		CozinhaDTO cozinhaDTO = new CozinhaDTO();
+		cozinhaDTO.setId(restaurante.getCozinha().getId());
+		cozinhaDTO.setNome(restaurante.getCozinha().getNome());
+		
+		RestauranteDTO restauranteDTO = new RestauranteDTO();
+		restauranteDTO.setId(restaurante.getId());
+		restauranteDTO.setNome(restaurante.getNome());
+		restauranteDTO.setTaxaFrete(restaurante.getTaxaFrete());
+		restauranteDTO.setCozinha(cozinhaDTO);
+		return restauranteDTO;
+	}
+	
+	private List<RestauranteDTO> toCollectionDTO(List<Restaurante> restaurantes) {
+		return restaurantes.stream()
+				.map(restaurante -> toDTO(restaurante))
+				.collect(Collectors.toList());
 	}
 
 }
