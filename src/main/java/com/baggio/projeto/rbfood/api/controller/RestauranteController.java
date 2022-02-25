@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.baggio.projeto.rbfood.api.model.RestauranteDTO;
 import com.baggio.projeto.rbfood.domain.exception.CozinhaNaoEncontradaException;
 import com.baggio.projeto.rbfood.domain.exception.NegocioException;
 import com.baggio.projeto.rbfood.domain.model.Restaurante;
@@ -45,8 +46,11 @@ public class RestauranteController {
 	}
 
 	@GetMapping(value = "/{id}")
-	public Restaurante buscar(@PathVariable Long id) {
-		return cadastroRestauranteService.buscar(id);
+	public RestauranteDTO buscar(@PathVariable Long id) {
+		Restaurante restaurante = cadastroRestauranteService.buscar(id);
+		RestauranteDTO restauranteDTO = null;
+		
+		return restauranteDTO;
 	}
 
 	@PutMapping(value = "/{id}")
