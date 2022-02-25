@@ -46,6 +46,7 @@ public class CadastroRestauranteService {
 		return restauranteRepository.save(restaurante);
 	}
 
+	@Transactional
 	public void remover(Long id) {
 		try {
 			restauranteRepository.deleteById(id);

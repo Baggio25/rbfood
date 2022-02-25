@@ -1,7 +1,7 @@
 package com.baggio.projeto.rbfood.domain.model;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -64,15 +64,15 @@ public class Restaurante {
 	@Embedded
 	private Endereco endereco;
 	
-	@JsonIgnore
+	//@JsonIgnore
 	@CreationTimestamp
 	@Column(name = "data_cadastro", nullable = false, columnDefinition = "datetime") 
-	private LocalDateTime dataCadastro;
+	private OffsetDateTime dataCadastro; //Exibe no formato offset "2022-02-25T14:16:30-03:00"
 	
-	@JsonIgnore
+	//@JsonIgnore
 	@UpdateTimestamp
 	@Column(name = "data_atualizacao", nullable = false, columnDefinition = "datetime")
-	private LocalDateTime dataAtualizacao;
+	private OffsetDateTime dataAtualizacao;
 	
 	@JsonIgnore
 	@ManyToMany
