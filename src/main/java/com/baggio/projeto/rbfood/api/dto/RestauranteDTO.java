@@ -1,4 +1,4 @@
-package com.baggio.projeto.rbfood.api.model;
+package com.baggio.projeto.rbfood.api.dto;
 
 import java.math.BigDecimal;
 

@@ -3,7 +3,6 @@ package com.baggio.projeto.rbfood.api.controller;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -26,8 +25,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.baggio.projeto.rbfood.api.model.CozinhaDTO;
-import com.baggio.projeto.rbfood.api.model.RestauranteDTO;
+import com.baggio.projeto.rbfood.api.assembler.RestauranteDTOAssembler;
+import com.baggio.projeto.rbfood.api.assembler.RestauranteModelAsssembler;
+import com.baggio.projeto.rbfood.api.dto.RestauranteDTO;
 import com.baggio.projeto.rbfood.domain.exception.CozinhaNaoEncontradaException;
 import com.baggio.projeto.rbfood.domain.exception.NegocioException;
 import com.baggio.projeto.rbfood.domain.model.Restaurante;
@@ -41,26 +41,35 @@ public class RestauranteController {
 
 	@Autowired
 	private CadastroRestauranteService cadastroRestauranteService;
+	
+	@Autowired
+	private RestauranteDTOAssembler restauranteDTOAssembler;
+	
+	@Autowired 
+	private RestauranteModelAsssembler restauranteModelAsssembler;
 
 	@GetMapping
 	public List<RestauranteDTO> listar() {
-		return toCollectionDTO(cadastroRestauranteService.listar());
+		return restauranteDTOAssembler.toCollectionDTO(cadastroRestauranteService.listar());
 	}
 
 	@GetMapping(value = "/{id}")
 	public RestauranteDTO buscar(@PathVariable Long id) {
 		Restaurante restaurante = cadastroRestauranteService.buscar(id);
-		return toDTO(restaurante);
+		return restauranteDTOAssembler.toDTO(restaurante);
 	}
 
 	@PutMapping(value = "/{id}")
-	public RestauranteDTO atualizar(@PathVariable Long id, @Valid @RequestBody Restaurante restaurante) {
+	public RestauranteDTO atualizar(@PathVariable Long id, @Valid @RequestBody RestauranteDTO restauranteDTO) {
 		
 		try {
+			
+			Restaurante restaurante = restauranteModelAsssembler.toModel(restauranteDTO);
+			
 			Restaurante restauranteSalvo = cadastroRestauranteService.buscar(id);
 			BeanUtils.copyProperties(restaurante, restauranteSalvo, "id", "formasPagamento", "endereco", "dataCadastro");
 	
-			return toDTO(cadastroRestauranteService.salvar(restauranteSalvo));
+			return restauranteDTOAssembler.toDTO(cadastroRestauranteService.salvar(restauranteSalvo));
 		} catch (CozinhaNaoEncontradaException e) {
 			throw new NegocioException(e.getMessage());
 		}
@@ -70,16 +79,19 @@ public class RestauranteController {
 	@PatchMapping(value = "/{id}")
 	public RestauranteDTO atualizarParcial(@PathVariable Long id, @RequestBody Map<String, Object> campos,
 			HttpServletRequest request) {
+		
 		Restaurante restauranteSalvo = cadastroRestauranteService.buscar(id);
 		merge(campos, restauranteSalvo, request);
-		return atualizar(id, restauranteSalvo);
+		
+		RestauranteDTO restauranteDTO = restauranteDTOAssembler.toDTO(restauranteSalvo);	
+		return atualizar(id, restauranteDTO);
 	}
 
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
 	public RestauranteDTO adicionar(@RequestBody @Valid Restaurante restaurante) {
 		try {
-			return toDTO(cadastroRestauranteService.salvar(restaurante));
+			return restauranteDTOAssembler.toDTO(cadastroRestauranteService.salvar(restaurante));
 		} catch (CozinhaNaoEncontradaException e) {
 			throw new NegocioException(e.getMessage());
 		}
@@ -114,23 +126,6 @@ public class RestauranteController {
 		}
 	}
 
-	private RestauranteDTO toDTO(Restaurante restaurante) {
-		CozinhaDTO cozinhaDTO = new CozinhaDTO();
-		cozinhaDTO.setId(restaurante.getCozinha().getId());
-		cozinhaDTO.setNome(restaurante.getCozinha().getNome());
-		
-		RestauranteDTO restauranteDTO = new RestauranteDTO();
-		restauranteDTO.setId(restaurante.getId());
-		restauranteDTO.setNome(restaurante.getNome());
-		restauranteDTO.setTaxaFrete(restaurante.getTaxaFrete());
-		restauranteDTO.setCozinha(cozinhaDTO);
-		return restauranteDTO;
-	}
 	
-	private List<RestauranteDTO> toCollectionDTO(List<Restaurante> restaurantes) {
-		return restaurantes.stream()
-				.map(restaurante -> toDTO(restaurante))
-				.collect(Collectors.toList());
-	}
 
 }

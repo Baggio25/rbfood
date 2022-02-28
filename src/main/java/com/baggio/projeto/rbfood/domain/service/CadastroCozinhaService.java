@@ -42,6 +42,7 @@ public class CadastroCozinhaService {
 	public void remover(Long id) {
 		try {
 			cozinhaRepository.deleteById(id);
+			cozinhaRepository.flush(); //descarrega as mudanças pendentes no banco
 		} catch (EmptyResultDataAccessException e) {
 			throw new CozinhaNaoEncontradaException(String.format(MSG_COZINHA_NAO_ENCONTRADA, id));
 		} catch (DataIntegrityViolationException e) {
